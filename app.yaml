@@ -1,0 +1,12 @@
+runtime: python39
+entrypoint: gunicorn -b :$PORT app:app
+readiness_check:
+  path: "/readiness_check"
+  success_threshold: 2
+  failure_threshold: 2
+  timeout_sec: 4
+  check_interval_sec: 2
+  app_start_timeout_sec: 300
+
+
+
