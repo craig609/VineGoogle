@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
@@ -15,24 +15,23 @@ def remaining_balance(loan_amount, annual_interest_rate, loan_term_years, months
     remaining_balance = loan_amount * ((1 + annual_interest_rate / 12 / 100) ** months_paid) - (monthly_payment / (annual_interest_rate / 12 / 100)) * ((1 + annual_interest_rate / 12 / 100) ** months_paid - 1)
     return remaining_balance
 
-@app.route('/')
-def index():
-    return render_template('index.html')
-
 @app.route('/calculate', methods=['POST'])
 def calculate():
     if request.method == 'POST':
-        loan_amount = float(request.form['loan_amount'])
-        annual_interest_rate = float(request.form['annual_interest_rate'])
-        loan_term_years = int(request.form['loan_term_years'])
-        months_paid = int(request.form['months_paid'])
+        data = request.get_json()
+
+        loan_amount = float(data['loan_amount'])
+        annual_interest_rate = float(data['annual_interest_rate'])
+        loan_term_years = int(data['loan_term_years'])
+        months_paid = int(data['months_paid'])
 
         remaining_balances = []
         for month in range(months_paid + 1, loan_term_years * 12 + 1):
             remaining_balance_month = remaining_balance(loan_amount, annual_interest_rate, loan_term_years, month)
-            remaining_balances.append(f'Month {month}: Remaining Balance = ${remaining_balance_month:.2f}')
+            remaining_balances.append({'month': month, 'remaining_balance': remaining_balance_month})
 
-        return render_template('result.html', remaining_balances=remaining_balances)
+        return jsonify({'remaining_balances': remaining_balances})
 
 if __name__ == "__main__":
-    app.run(host='127.0.0.1', port=8080, debug=True)
+    app.run(host='0.0.0.0', port=8080, debug=True)
+
